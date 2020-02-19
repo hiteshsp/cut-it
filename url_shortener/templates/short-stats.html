@@ -7,18 +7,11 @@
 			<tr>
 				<th scope="col">Long URL</th>
 				<th scope="col">Short URL</th>
-				<th scope="col">Hits</th>
+				<th scope="col">Visits</th>
 			</tr>
 		</thead>
 		<tbody>
-			{% for obj in url %}
-			<tr>
-				<td>{{ obj['long_url']['S'] }}</td>
-				<td>{{ obj['short_url']['S'] }}</td>
-				<td>0</td>
 
-			</tr>
-			{% endfor %}
 		</tbody>
 	</table>
 </div>

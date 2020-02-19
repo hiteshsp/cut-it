@@ -8,7 +8,7 @@
 	<form method="POST" action="/">
 		<div class="input-group">
 			{{ form.csrf_token }}
-			{{ form.long_url(class="form-control", type="text", placeholder="Enter your URL") }}
+			{{ form.long_url(class="form-control", type="search", placeholder="{{ long_url}") }}
 			{{ form.submit(class="input-group-append form-field btn btn-primary") }}
 		</div>
 		<div class="errors">
@@ -22,16 +22,11 @@
 			</div>
 			{% endif %}
 		</div>
-
 	</form>
 </div>
-<div id="short_url" class="short_url input-group">
-	<input id="url" type="text" value={{ short_url }}> <button class="btn" data-clipboard-target="#url">copy<span class="glyphicon glyphicon-copy"></span></span></button>
-
+<div id="short_url" class="short_url">
+	<p> The short url is
+		<a href={{ long_url }} target="_blank"> {{ short_url}} </a>
+	</p>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js"></script>
-<script>
-	new ClipboardJS('.short_url');
-</script>
-
 {% endblock %}

@@ -1,11 +1,12 @@
 from url_shortener import app
 from flask import render_template, url_for, redirect, request
 from url_shortener.forms import UrlForm
-from url_shortener.db import DynamoDB, retrieve_stats
+from url_shortener.db import DynamoDB, retrieve_stats, scan
 import short_url
 from time import time
 import random
 import os
+from flask.helpers import flash
 
 #empty dictionary for the inserting form object to db
 obj = {}
@@ -36,11 +37,10 @@ def index():
             else:
                 db_obj.insert()
                 print("insert successful")  # debug point
-                return render_template('index.html', form=new_form, long_url=obj['long_url'], short_url=obj['short_url'])
+                return render_template('index.html', form=new_form, long_url=obj['long_url'], short_url=domain+obj['short_url'])
         return render_template('index.html', form=new_form)
     except:
         print("Exception Occured")
-
 
 @app.route("/stats")
 def stats():
@@ -48,7 +48,11 @@ def stats():
         This method is used to display the statistics of the 'active' shortened URL's
     """
     #TODO
-    return render_template('stats.html')
+    response = scan()
+    if response['Count'] == 0:
+        return render_template('error.html')
+    response = response['Items']
+    return render_template('stats.html',url=response)
 
 @app.route("/<path:url>", methods=['GET'])
 def short_urls(url):
@@ -59,7 +63,7 @@ def short_urls(url):
     if response['Count'] == 0:
         return render_template('error.html')
     response = response['Items'][0]['long_url']['S']
-    return render_template(response)
+    return redirect(response)
 
 @app.route("/<path:short_url>/stats")
 def get_stats(short_url):
@@ -67,7 +71,7 @@ def get_stats(short_url):
         Renders Stats per ShortURL
     """
     #TODO
-    return render_template('short-stats.html')
+    return render_template('stats.html')
 
 @app.errorhandler(404)
 def error():

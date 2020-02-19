@@ -80,3 +80,15 @@ def retrieve_stats(short_url):
         return response
     except:
         print("Exception Occurred")
+def scan():
+    """
+        Returns all records for stats page
+    """
+    try:
+        response = client.scan(
+            TableName=table_name,
+            ProjectionExpression='long_url, short_url',
+            )
+        return response
+    except:
+        print("An exception in scan() method")
