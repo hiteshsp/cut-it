@@ -2,8 +2,13 @@
 
 {% block head %}
 {% endblock %}
+	
 {% block section %}
-
+<div class="text-center">
+	<a href="#">
+		<img class="rounded" src="../static/logo.png" alt="Brand Logo">
+	</a>
+</div>
 <div class="txt_shorten col-lg-5">
 	<form method="POST" action="/">
 		<div class="input-group">
@@ -26,12 +31,19 @@
 	</form>
 </div>
 <div id="short_url" class="short_url input-group">
-	<input id="url" type="text" value={{ short_url }}> <button class="btn" data-clipboard-target="#url">copy<span class="glyphicon glyphicon-copy"></span></span></button>
-
+	<input id="url" value={{short_url}} readonly> 
+	<button id="btn" class="btn" data-clipboard-target="#url">copy</button>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js"></script>
 <script>
-	new ClipboardJS('.short_url');
+	var btn = document.getElementById('btn');
+	var clipboard = new ClipboardJS(btn);
+	clipboard.on('success', function(e){
+			console.log(e);
+	})
+	clipboard.on('error', function(e){
+		console.log(e);
+	})
 </script>
 
 {% endblock %}

@@ -3,6 +3,7 @@
 {% block section %}
 <div class="tbl">
 	<table class="table table-hover table-striped table-bordered">
+	  <caption>Stats for all Short URLs Generated</caption>
 		<thead class="thead-light">
 			<tr>
 				<th scope="col">Long URL</th>
@@ -14,9 +15,8 @@
 			{% for obj in url %}
 			<tr>
 				<td>{{ obj['long_url']['S'] }}</td>
-				<td>{{ obj['short_url']['S'] }}</td>
-				<td>0</td>
-
+				<td><a href={{ obj['long_url']['S'] }}> /{{ obj['short_url']['S'] }}</a></td>
+				<td>{{ obj['hits']['N']}}</td>
 			</tr>
 			{% endfor %}
 		</tbody>

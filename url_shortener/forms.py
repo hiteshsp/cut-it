@@ -2,9 +2,6 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired, URL
 
-#import re
-#domain_regex= r'(^(https?://)w{3}.)?[a-zA-Z0-9][a-zA-Z0-9]+[a-zA-Z0-9].[a-zA-Z]{2,3}'
-#pattern = re.compile(domain_regex)
 
 class UrlForm(FlaskForm):
     """

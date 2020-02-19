@@ -8,6 +8,7 @@ app.config.from_pyfile('config.py',)
 
 # Setting the required variables for the application
 app.config.get("SECRET_KEY")
+
 from url_shortener import views
 from url_shortener import db
 from url_shortener import forms

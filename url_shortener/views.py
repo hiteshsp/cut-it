@@ -14,6 +14,9 @@ obj = {}
 #prefix domain
 domain = os.environ.get('IP')  # get the public IP
 
+home = 'index.html'
+error_page = 'error.html'
+
 
 @app.route('/', methods=['POST', 'GET'])
 def index():
@@ -25,34 +28,35 @@ def index():
         if new_form.validate_on_submit():
             obj['long_url'] = new_form.long_url.data
             obj['timestamp'] = str(int(time()))
-            obj['short_url'] = short_url.encode_url(random.randrange(1, 1000, 1))
-            #obj['short_url'] = short_url.encode_url(random.randrange(1,1000,1)) need to think
-
+            obj['short_url'] = short_url.encode_url(
+                random.randrange(1, 1000, 1))
+            obj['hits'] = '0'
             db_obj = DynamoDB(obj)
             flag, response = db_obj.search()
             if flag == True:
                 response = response['Items'][0]['short_url']['S']
                 print(response)  # debug point
-                return render_template('index.html', form=new_form, long_url=obj['long_url'], short_url=response)
+                return render_template(home, form=new_form, long_url=obj['long_url'], short_url=domain+response)
             else:
                 db_obj.insert()
                 print("insert successful")  # debug point
-                return render_template('index.html', form=new_form, long_url=obj['long_url'], short_url=domain+obj['short_url'])
-        return render_template('index.html', form=new_form)
+                return render_template(home, form=new_form, long_url=obj['long_url'], short_url=domain+obj['short_url'])
+        return render_template(home, form=new_form)
     except:
         print("Exception Occured")
+
 
 @app.route("/stats")
 def stats():
     """
         This method is used to display the statistics of the 'active' shortened URL's
     """
-    #TODO
     response = scan()
     if response['Count'] == 0:
-        return render_template('error.html')
+        return render_template(error_page)
     response = response['Items']
-    return render_template('stats.html',url=response)
+    return render_template('stats.html', url=response)
+
 
 @app.route("/<path:url>", methods=['GET'])
 def short_urls(url):
@@ -61,21 +65,33 @@ def short_urls(url):
     """
     response = retrieve_stats(url)
     if response['Count'] == 0:
-        return render_template('error.html')
-    response = response['Items'][0]['long_url']['S']
-    return redirect(response)
+        return render_template(error_page)
+    obj['long_url'] = response['Items'][0]['long_url']['S']
+    obj['timestamp'] = response['Items'][0]['timestamp']['S']
+    obj['hits'] = str(int(response['Items'][0]['hits']['N']) + 1)
 
-@app.route("/<path:short_url>/stats")
-def get_stats(short_url):
+    db = DynamoDB(obj)
+    db.update()
+    return redirect(obj['long_url'])
+
+
+@app.route("/<path:url>/stats")
+def get_stats(url):
     """
         Renders Stats per ShortURL
     """
-    #TODO
-    return render_template('stats.html')
+    response = retrieve_stats(url)
+    if response['Count'] == 0:
+        return render_template(error_page)
+    long_url = response['Items'][0]['long_url']['S']
+    hits = response['Items'][0]['hits']['N']
+
+    return render_template('short-stats.html', long_url=long_url, short_url=url, hits=hits)
+
 
 @app.errorhandler(404)
 def error():
     """
     Error Page
     """
-    return redirect('error.html'), 404
+    return redirect(error_page), 404
