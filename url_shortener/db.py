@@ -2,12 +2,18 @@ import boto3
 import os
 from time import time
 
+# Boto Client to interact with the DynamoDB
 client = boto3.client('dynamodb')
 table_name = os.environ.get('TABLE_NAME')
 
 
 class DynamoDB:
-
+    """
+        Creates an Database Object which includes helper functions like
+        1. search : Finds the exisiting short_url from DB
+        2. insert : Inserts items into DB
+    """
+    
     def __init__(self, obj):
         self.obj = obj
 
@@ -56,22 +62,21 @@ class DynamoDB:
             print("Exception Occurred")
 
 
-
 def retrieve_stats(short_url):
     """
-          Gets the stats
+          Returns response which contains long_url, short_url and visits
     """
     try:
         response = client.query(
-                TableName=table_name,
-		        IndexName='short_url-index',
-                ExpressionAttributeValues={':url': {
-                    'S': short_url,
-                },
-                },
-                KeyConditionExpression='short_url = :url',
-                ProjectionExpression='long_url'
-            )
+            TableName=table_name,
+            IndexName='short_url-index',
+            ExpressionAttributeValues={':url': {
+                'S': short_url,
+            },
+            },
+            KeyConditionExpression='short_url = :url',
+            ProjectionExpression='long_url'
+        )
         return response
     except:
-            print("Exception Occurred")
+        print("Exception Occurred")
