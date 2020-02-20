@@ -51,14 +51,17 @@ class DynamoDB:
                                        'long_url': {
                                            'S': self.obj['long_url']
                                        },
-                                       'timestamp': {
-                                           'S': self.obj['timestamp']
+                                       'last_accessed': {
+                                           'S': self.obj['last_accessed']
                                        },
                                        'short_url': {
                                            'S': self.obj['short_url']
                                        },
                                        'hits': {
                                            'N': self.obj['hits']
+                                       },
+                                       'created_time': {
+                                           'S': self.obj['created_time']
                                        },
                                    })
             return item
@@ -74,11 +77,12 @@ class DynamoDB:
                 TableName=table_name,
                 Key={
                     'long_url': {'S': self.obj['long_url']},
-                    'timestamp': {'S': self.obj['timestamp']}
+                    'created_time': {'S': self.obj['created_time']}
                 },
-                UpdateExpression="set hits = :h",
+                UpdateExpression="set hits = :h, last_accessed = :la",
                 ExpressionAttributeValues={
-                    ':h': {'N': self.obj['hits']}
+                    ':h': {'N': self.obj['hits']},
+                    ':la': {'S': self.obj['last_accessed']}
                 },
                 ReturnValues="UPDATED_NEW")
             return response
@@ -98,9 +102,8 @@ def retrieve_stats(short_url):
                 'S': short_url,
             },
             },
-            ExpressionAttributeNames={'#timestamp': 'timestamp'},
             KeyConditionExpression='short_url = :url',
-            ProjectionExpression='long_url, #timestamp, hits',
+            ProjectionExpression='long_url, created_time, last_accessed, hits',
         )
         return response
     except:

@@ -16,7 +16,7 @@ domain = os.environ.get('IP')  # get the public IP
 
 home = 'index.html'
 error_page = 'error.html'
-
+current_time = str(int(time()))
 
 @app.route('/', methods=['POST', 'GET'])
 def index():
@@ -27,7 +27,8 @@ def index():
         new_form = UrlForm()
         if new_form.validate_on_submit():
             obj['long_url'] = new_form.long_url.data
-            obj['timestamp'] = str(int(time()))
+            obj['created_time'] = current_time
+            obj['last_accessed'] = current_time
             obj['short_url'] = short_url.encode_url(
                 random.randrange(1, 1000, 1))
             obj['hits'] = '0'
@@ -66,8 +67,14 @@ def short_urls(url):
     response = retrieve_stats(url)
     if response['Count'] == 0:
         return render_template(error_page)
+
+    # long_url and created_time are key attributes
+    # They are needed to update the hits and last_access time
     obj['long_url'] = response['Items'][0]['long_url']['S']
-    obj['timestamp'] = response['Items'][0]['timestamp']['S']
+    obj['created_time'] = response['Items'][0]['created_time']['S']
+
+    # Capturing the hits and last_accessed time for the update
+    obj['last_accessed'] = str(int(time()))
     obj['hits'] = str(int(response['Items'][0]['hits']['N']) + 1)
 
     db = DynamoDB(obj)
@@ -80,9 +87,13 @@ def get_stats(url):
     """
         Renders Stats per ShortURL
     """
+    # Retrieving the given short url's stats from the table
     response = retrieve_stats(url)
+
+    # If the response is zero.
     if response['Count'] == 0:
-        return render_template(error_page)
+        return "Invalid Short URL"
+        
     long_url = response['Items'][0]['long_url']['S']
     hits = response['Items'][0]['hits']['N']
 
