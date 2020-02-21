@@ -57,7 +57,7 @@ def stats():
     if response['Count'] == 0:
         return render_template(error_page)
     response = response['Items']
-    return render_template('stats.html', url=response)
+    return render_template('stats.html', url=response, domain=domain)
 
 
 @app.route("/<path:url>", methods=['GET'])

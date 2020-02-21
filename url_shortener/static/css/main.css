@@ -53,3 +53,11 @@
      left:35%;
      text-align: center;
   }
+
+  /*
+  Need to Change this
+  */
+  .graph{
+     display: block;
+     margin-left: 30%;
+  }

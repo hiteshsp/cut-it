@@ -10,3 +10,4 @@ class UrlForm(FlaskForm):
     long_url = StringField('URL', [DataRequired(), URL(
         message="Must be a valid URL with http:// or https://")])
     submit = SubmitField('Shorten iT!')
+
