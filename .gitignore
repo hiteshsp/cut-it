@@ -2,3 +2,5 @@ url_shortener/secrets.txt
 venv/*
 __pycache__/*
 url_shortener.egg-info/*
+.github/*
+.vscode/*
