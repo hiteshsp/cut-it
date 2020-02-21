@@ -6,6 +6,9 @@ from time import time
 client = boto3.client('dynamodb')
 table_name = os.environ.get('TABLE_NAME')
 
+#Constant for exception handling
+EXCEPTION_MSG = 'Exception occurred, msg: {}'
+
 
 class DynamoDB:
     """
@@ -38,8 +41,8 @@ class DynamoDB:
                 return False, "empty"
 
             return True, response
-        except:
-            print("An Exception Occurred in search()")
+        except Exception as ex:
+            print(EXCEPTION_MSG.format(ex))
 
     def insert(self):
         """
@@ -65,8 +68,8 @@ class DynamoDB:
                                        },
                                    })
             return item
-        except:
-            print("Exception Occurred in insert()\n")
+        except Exception as ex:
+            print(EXCEPTION_MSG.format(ex))
 
     def update(self):
         """
@@ -86,8 +89,26 @@ class DynamoDB:
                 },
                 ReturnValues="UPDATED_NEW")
             return response
-        except:
-            print("Exception Occurred in update()")
+        except Exception as ex:
+            print(EXCEPTION_MSG.format(ex))
+    
+    def delete(self):
+        """
+            Deletes the key from the table
+        """
+        try:
+            response = client.delete_item(
+                Key = {
+                    'long_url': self.obj['long_url'],
+                    'created_time': self.obj['created_time']
+                },
+                ConditionExpression="long_url == :url",
+                ExpressionAttributeValues={
+                    ':url': self.obj['long_url']
+                }
+            )
+        except Exception as ex:
+            print(EXCEPTION_MSG.format(ex))
 
 
 def retrieve_stats(short_url):
@@ -103,11 +124,12 @@ def retrieve_stats(short_url):
             },
             },
             KeyConditionExpression='short_url = :url',
-            ProjectionExpression='long_url, created_time, last_accessed, hits',
+            ProjectionExpression='long_url, created_time, last_accessed, hits'
+
         )
         return response
-    except:
-        print("Exception Occurred retrieve_stats()")
+    except Exception as ex:
+        print(EXCEPTION_MSG.format(ex))
 
 
 def scan():
@@ -120,5 +142,6 @@ def scan():
             ProjectionExpression='long_url, short_url, hits',
         )
         return response
-    except:
-        print("An exception in scan() method")
+    except Exception as ex:
+        print(EXCEPTION_MSG.format(ex))
+

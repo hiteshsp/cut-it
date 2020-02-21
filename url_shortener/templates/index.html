@@ -30,22 +30,5 @@
 
 	</form>
 </div>
-<div class="copy-link col-lg-4">
-<div id="short_url" class="input-group">
-	<input type="text" id="url" value="{{short_url}}"> 
-	<button id="btn" class="btn btn-success input-group-append form-field" data-clipboard-target="#url">copy</button>
-</div>
-</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js"></script>
-<script>
-	var btn = document.getElementById('btn');
-	var clipboard = new ClipboardJS(btn);
-	clipboard.on('success', function(e){
-			console.log(e);
-	})
-	clipboard.on('error', function(e){
-		console.log(e);
-	})
-</script>
 
 {% endblock %}

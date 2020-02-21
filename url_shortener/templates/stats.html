@@ -36,12 +36,12 @@ function drawChart() {
     var data = google.visualization.arrayToDataTable([
 				['Short URL', 'Hits'],
 				{% for obj in url %}
-			    ['{{ obj['short_url']['S'] }}', {{ obj['hits']['N'] }}],
+			    ['/{{ obj['short_url']['S'] }}', {{ obj['hits']['N'] }}],
         		{% endfor %}
 		        ]);
 
 	var options = {
-		title: 'Statistics Per URL',
+		title: 'URL Shortener Statistics',
 		is3D: true
 	};
 
