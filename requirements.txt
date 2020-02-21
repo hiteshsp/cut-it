@@ -9,13 +9,11 @@ itsdangerous==1.1.0
 Jinja2==2.11.1
 jmespath==0.9.4
 MarkupSafe==1.1.1
-pkg-resources==0.0.0
 pycodestyle==2.5.0
 python-dateutil==2.8.1
 s3transfer==0.3.3
 short-url==1.2.2
 six==1.14.0
--e git+https://github.com/hiteshsp/flask-api-modular.git@4051da0da60b2f949ec31a0113d6669fa9cb883f#egg=url_shortener
 urllib3==1.25.8
 Werkzeug==1.0.0
 WTForms==2.2.1
