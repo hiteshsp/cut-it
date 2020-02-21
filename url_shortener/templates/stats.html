@@ -1,9 +1,10 @@
 {% extends 'base.html' %}
 
 {% block section %}
-<div class="tbl">
+
+<div class="stats">
 	<table class="table table-hover table-striped table-bordered">
-	  <caption>Stats for all Short URLs Generated</caption>
+		<caption>Stats for all Short URLs Generated</caption>
 		<thead class="thead-light">
 			<tr>
 				<th scope="col">Long URL</th>
@@ -21,5 +22,12 @@
 			{% endfor %}
 		</tbody>
 	</table>
+</div>
+
+<div class="graph" id="graph" style="width: 500px; height: 500px; "></div>
+
+<script src="../static/js/script.js" type="application/javascript"></script>
+<script type="text/javascript" src="../static/js/drawChart.js"></script>
+</div>
 </div>
 {% endblock %}

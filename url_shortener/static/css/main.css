@@ -20,7 +20,7 @@
      font-family: Verdana, Geneva, Tahoma, sans-serif;
      font-size: 20px;
   }
-  .tbl{
+  .stats{
      margin-left: 20%;
      margin-top: 1%;
      margin-right: 20%;
@@ -49,8 +49,7 @@
      padding: 1px 1px 1px 1px;
   }
   
-  .short_url{
-     position: fixed;
-     left:40%;
+  .copy-link{
+     left:35%;
      text-align: center;
   }

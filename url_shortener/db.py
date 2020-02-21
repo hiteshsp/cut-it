@@ -39,7 +39,7 @@ class DynamoDB:
 
             return True, response
         except:
-            print("An Exception Occ")
+            print("An Exception Occurred in search()")
 
     def insert(self):
         """

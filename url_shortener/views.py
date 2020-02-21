@@ -32,6 +32,7 @@ def index():
             obj['short_url'] = short_url.encode_url(
                 random.randrange(1, 1000, 1))
             obj['hits'] = '0'
+            
             db_obj = DynamoDB(obj)
             flag, response = db_obj.search()
             if flag == True:

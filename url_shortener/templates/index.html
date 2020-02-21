@@ -30,9 +30,11 @@
 
 	</form>
 </div>
-<div id="short_url" class="short_url input-group">
-	<input id="url" value={{short_url}} readonly> 
-	<button id="btn" class="btn" data-clipboard-target="#url">copy</button>
+<div class="copy-link col-lg-4">
+<div id="short_url" class="input-group">
+	<input id="url" class="form-control" value={{short_url}} readonly> 
+	<button id="btn" class="btn btn-success input-group-append form-field" data-clipboard-target="#url">copy</button>
+</div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js"></script>
 <script>

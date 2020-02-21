@@ -20,30 +20,7 @@
 		</tbody>
 	</table>
 </div>
-<div class="graph" id="graph" style="width: 800px; height: 400px;"></div>
-<script src="../static/js/script.js" type="application/javascript"></script>
-<script type="text/javascript">
-	google.charts.load('current', { 'packages': ['corechart'] });
-	google.charts.setOnLoadCallback(drawChart);
-
-	function drawChart() {
-
-		var data = google.visualization.arrayToDataTable([
-			['Task', 'Hours per Day'],
-			['Work', 11],
-			['Eat', 2],
-			['Commute', 2],
-			['Watch TV', 2],
-			['Sleep', 7]
-		]);
-
-		var options = {
-			title: 'My Daily Activities'
-		};
-
-		var chart = new google.visualization.PieChart(document.getElementById('graph'));
-
-		chart.draw(data, options);
-	}
-</script>
+<div class="text-center">
+	<iframe src="http://18.185.106.128:3000/d-solo/wCpGj-QWk/influx-init?orgId=1&from=1582197883533&to=1582198183533&panelId=2" width="450" height="200" title="short_url stats"></iframe>
+</div>
 {% endblock %}
