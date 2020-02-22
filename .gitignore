@@ -4,3 +4,4 @@ __pycache__/*
 url_shortener.egg-info/*
 .github/*
 .vscode/*
+logs/*
