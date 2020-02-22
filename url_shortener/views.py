@@ -33,25 +33,24 @@ def index():
         if form.validate_on_submit():
             obj = dict()
             obj['long_url'] = form.long_url.data
-
             db_obj = DynamoDB(obj)
             flag, response = db_obj.search()
             if flag == True:
                 response = response['Items'][0]['short_url']['S']
+                app.logger.debug('Returning existing short url')
                 return render_template(SUCCESS, form=form, long_url=obj['long_url'], short_url=domain+response)
             else:
-                obj['short_url'] = short_url.encode_url(random.randrange(1, 1000, 1))
+                obj['short_url'] = short_url.encode_url(
+                    random.randrange(1, 1000, 1))
                 obj['created_time'] = CURRENT_TIME
                 obj['last_accessed'] = CURRENT_TIME
                 obj['hits'] = '0'
-
                 db_obj.insert()
-                print("insert successful")
+                app.logger.debug('index(): Insertion Successful')
                 return render_template(SUCCESS, form=form, long_url=obj['long_url'], short_url=domain+obj['short_url'])
         return render_template(HOME, form=form)
     except Exception as ex:
         print('index(): '+EXCEPTION_MSG.format(ex))
-
 
 
 @app.route("/stats")
@@ -65,12 +64,14 @@ def stats():
             return render_template(ERROR_PAGE)
         response = response['Items']
         response = json.loads(response)
-        
+
         # TODO: Change timestamp from string to int
         for obj in response:
-          obj['last_accessed'] = datetime.utcfromtimestamp(int(obj['last_accessed']))
-    
+          obj['last_accessed'] = datetime.utcfromtimestamp(
+              int(obj['last_accessed']))
+
         response = sorted(response, key=lambda obj: obj['hits'], reverse=True)
+        app.logger.debug('Response Object from scan() {}'.format(response))
         return render_template('stats.html', url=response, domain=domain)
     except Exception as ex:
         print("stats(): "+EXCEPTION_MSG.format(ex))
@@ -85,8 +86,8 @@ def short_urls(url):
         response = retrieve_stats(url)
         if response['Count'] == 0:
             return render_template(ERROR_PAGE)
-        
-        obj = {}
+
+        obj = dict()
         # long_url and created_time are key attributes
         # They are needed to update the hits and last_access time
         obj['long_url'] = response['Items'][0]['long_url']['S']
@@ -95,6 +96,8 @@ def short_urls(url):
         # Capturing the hits and last_accessed time for the update
         obj['last_accessed'] = str(int(time()))
         obj['hits'] = str(int(response['Items'][0]['hits']['N']) + 1)
+
+        app.logger.debug(' Response Object of statistics:\n %s', obj)
 
         db = DynamoDB(obj)
         db.update()
@@ -118,6 +121,8 @@ def get_stats(url):
 
         long_url = response['Items'][0]['long_url']['S']
         hits = response['Items'][0]['hits']['N']
+
+        app.logger.debug('Short URL response : {}'.format(response))
 
         return render_template('short-stats.html', long_url=long_url, short_url=url, hits=hits)
     except Exception as ex:

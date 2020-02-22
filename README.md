@@ -9,8 +9,8 @@ Hope you like it :)
 * Generates the short url randomly without any conflicts
 * Uses NoSQL DynamoDB for easier storage and retrieval
 * Doesn't generate a short url if it exists already
-* Visualizes the requests in the form of pie chart
-* Contains a statisics page for all short urls generated and indivual URL's too
+* Visualizes the URL hits in the form of pie chart
+* Contains a statisics page for all short urls generated and individual URL's too
 
 ## Built on
 * Python3

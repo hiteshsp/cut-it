@@ -1,6 +1,7 @@
 import boto3
 import os
 from time import time
+from url_shortener import app
 
 # Boto Client to interact with the DynamoDB
 client = boto3.client('dynamodb')
@@ -70,7 +71,7 @@ class DynamoDB:
                                    })
             return item
         except Exception as ex:
-            print(EXCEPTION_MSG.format(ex))
+            app.logger.error(EXCEPTION_MSG.format(ex))
 
     def update(self):
         """
@@ -91,12 +92,12 @@ class DynamoDB:
                 ReturnValues="UPDATED_NEW")
             return response
         except Exception as ex:
-            print(EXCEPTION_MSG.format(ex))
+            app.logger.error(EXCEPTION_MSG.format(ex))
 
 
 def retrieve_stats(short_url):
     """
-          Returns response which contains long_url and hits
+          Returns response which contains long_url, created_time, last_accessed, hits
     """
     try:
         response = client.query(
@@ -112,7 +113,7 @@ def retrieve_stats(short_url):
         )
         return response
     except Exception as ex:
-        print(EXCEPTION_MSG.format(ex))
+        app.logger.error(EXCEPTION_MSG.format(ex))
 
 
 def scan():
@@ -126,4 +127,4 @@ def scan():
         )
         return response
     except Exception as ex:
-        print(EXCEPTION_MSG.format(ex))
+        app.logger.error(EXCEPTION_MSG.format(ex))
