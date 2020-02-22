@@ -6,13 +6,12 @@ import short_url
 from time import time
 import random
 import os
-from flask.helpers import flash
 from dynamodb_json import json_util as json
 from datetime import datetime
 
 
-#prefix domain
-domain = os.environ.get('IP')  # get the public IP
+# Prefix domain
+domain = os.environ.get('IP')
 
 
 HOME = 'index.html'
@@ -20,7 +19,7 @@ SUCCESS = 'success.html'
 ERROR_PAGE = 'error.html'
 CURRENT_TIME = str(int(time()))
 
-#Constant for exception handling
+# Constant for exception handling
 EXCEPTION_MSG = 'Exception occurred, msg: {}'
 
 
@@ -32,8 +31,7 @@ def index():
     try:
         form = UrlForm()
         if form.validate_on_submit():
-            #empty dictionary for the inserting form object to db
-            obj = {}
+            obj = dict()
             obj['long_url'] = form.long_url.data
 
             db_obj = DynamoDB(obj)

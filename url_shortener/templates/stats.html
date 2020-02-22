@@ -1,16 +1,16 @@
 {% extends 'base.html' %}
 
 {% block section %}
-
-<div class="stats" id="stats-tbl">
+<div class="row m-0">
+<div class="stats p-8 col-md-6 col-sm-12" id="stats-tbl">
 	<table class="table table-hover table-striped table-bordered">
 		<caption>Stats for all Short URLs Generated</caption>
 		<thead class="thead-light">
 			<tr>
-				<th scope="col-2">Long URL</th>
-				<th scope="col-2">Short URL</th>
-				<th scope="col-2">Hits</th>
-				<th scope="col-2">Last Accessed</th>
+				<th scope="col">Long URL</th>
+				<th scope="col">Short URL</th>
+				<th scope="col">Hits</th>
+				<th scope="col">Last Accessed</th>
 			</tr>
 		</thead>
 
@@ -27,8 +27,13 @@
 		</tbody>
 	</table>
 </div>
+<div class="col-md-6 col-sm-12">
+	<div class="container" id="graph" style="width: 600px; height: 600px;"> </div>
+</div>
 
-<div class="container" id="graph" style="width: 600px; height: 600px;"> </div>
+</div>
+
+
 
 <script src="../static/js/charts.js" type="application/javascript"></script>
 <script type="text/javascript">
