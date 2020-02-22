@@ -21,11 +21,12 @@
      font-size: 20px;
   }
   .stats{
-     margin-left: 20%;
+     padding-left: 8px;  
+     padding-right: 8px;
      margin-top: 1%;
-     margin-right: 20%;
      font-size: 16px;
      font-family:Verdana, Geneva, Tahoma, sans-serif;
+     box-sizing: border-box;
   }
   footer{
      position: fixed;
@@ -53,11 +54,16 @@
      left:35%;
      text-align: center;
   }
+#graph{
+   padding-left: 8px;  
+   padding-right: 8px;
+}
 
-  /*
-  Need to Change this
-  */
-  .graph{
-     display: block;
-     margin-left: 30%;
-  }
+.p-8{
+   padding-left: 8px;
+   padding-right: 8px;
+}
+.m-0{
+   margin-left:0px !important;
+   margin-right:0px !important;
+}

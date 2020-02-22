@@ -9,6 +9,8 @@
 		integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 	<link rel="stylesheet" href="{{url_for('static',filename='css/main.css')}}">
 	<link rel="shortcut icon" href="{{url_for('static',filename='favicon.ico')}}" type="image/x-icon">
+	{{ moment.include_jquery() }}
+    {{ moment.include_moment() }}
 	{% block head %} {% endblock %}
 </head>
 
@@ -21,7 +23,7 @@
 						<a class="nav-link" href="/">Home</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link" href="stats">Stats</a>
+						<a class="nav-link" href="/stats">Stats</a>
 					</li>
 				</ul>
 			</div>
@@ -34,6 +36,7 @@
 	<footer class="page-footer font-small">
 		<p>&copy; 2020 Cut.it</p>
 	</footer>
+	
 	<script src="../static/js/jquery.js"
 		integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
 		crossorigin="anonymous"></script>

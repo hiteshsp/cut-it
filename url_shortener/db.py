@@ -1,12 +1,13 @@
 import boto3
 import os
 from time import time
+from url_shortener import app
 
 # Boto Client to interact with the DynamoDB
 client = boto3.client('dynamodb')
 table_name = os.environ.get('TABLE_NAME')
 
-#Constant for exception handling
+# Constant for exception handling
 EXCEPTION_MSG = 'Exception occurred, msg: {}'
 
 
@@ -29,9 +30,10 @@ class DynamoDB:
         try:
             response = client.query(
                 TableName=table_name,
-                ExpressionAttributeValues={':url': {
-                    'S': self.obj['long_url'],
-                },
+                ExpressionAttributeValues={
+                    ':url': {
+                        'S': self.obj['long_url'],
+                    },
                 },
                 KeyConditionExpression='long_url = :url',
                 ProjectionExpression='short_url'
@@ -69,7 +71,7 @@ class DynamoDB:
                                    })
             return item
         except Exception as ex:
-            print(EXCEPTION_MSG.format(ex))
+            app.logger.error(EXCEPTION_MSG.format(ex))
 
     def update(self):
         """
@@ -90,30 +92,12 @@ class DynamoDB:
                 ReturnValues="UPDATED_NEW")
             return response
         except Exception as ex:
-            print(EXCEPTION_MSG.format(ex))
-    
-    def delete(self):
-        """
-            Deletes the key from the table
-        """
-        try:
-            response = client.delete_item(
-                Key = {
-                    'long_url': self.obj['long_url'],
-                    'created_time': self.obj['created_time']
-                },
-                ConditionExpression="long_url == :url",
-                ExpressionAttributeValues={
-                    ':url': self.obj['long_url']
-                }
-            )
-        except Exception as ex:
-            print(EXCEPTION_MSG.format(ex))
+            app.logger.error(EXCEPTION_MSG.format(ex))
 
 
 def retrieve_stats(short_url):
     """
-          Returns response which contains long_url and hits
+          Returns response which contains long_url, created_time, last_accessed, hits
     """
     try:
         response = client.query(
@@ -129,7 +113,7 @@ def retrieve_stats(short_url):
         )
         return response
     except Exception as ex:
-        print(EXCEPTION_MSG.format(ex))
+        app.logger.error(EXCEPTION_MSG.format(ex))
 
 
 def scan():
@@ -139,9 +123,8 @@ def scan():
     try:
         response = client.scan(
             TableName=table_name,
-            ProjectionExpression='long_url, short_url, hits',
+            ProjectionExpression='long_url, short_url, last_accessed, hits',
         )
         return response
     except Exception as ex:
-        print(EXCEPTION_MSG.format(ex))
-
+        app.logger.error(EXCEPTION_MSG.format(ex))
