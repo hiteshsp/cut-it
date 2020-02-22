@@ -67,3 +67,10 @@
    margin-left:0px !important;
    margin-right:0px !important;
 }
+.short-stats{
+    margin-left: 20%;
+     margin-top: 1%;
+     margin-right: 20%;
+     font-size: 16px;
+     font-family:Verdana, Geneva, Tahoma, sans-serif;
+}
