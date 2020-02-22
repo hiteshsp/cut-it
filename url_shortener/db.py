@@ -6,7 +6,7 @@ from time import time
 client = boto3.client('dynamodb')
 table_name = os.environ.get('TABLE_NAME')
 
-#Constant for exception handling
+# Constant for exception handling
 EXCEPTION_MSG = 'Exception occurred, msg: {}'
 
 
@@ -29,9 +29,10 @@ class DynamoDB:
         try:
             response = client.query(
                 TableName=table_name,
-                ExpressionAttributeValues={':url': {
-                    'S': self.obj['long_url'],
-                },
+                ExpressionAttributeValues={
+                    ':url': {
+                        'S': self.obj['long_url'],
+                    },
                 },
                 KeyConditionExpression='long_url = :url',
                 ProjectionExpression='short_url'
@@ -91,24 +92,6 @@ class DynamoDB:
             return response
         except Exception as ex:
             print(EXCEPTION_MSG.format(ex))
-    
-    def delete(self):
-        """
-            Deletes the key from the table
-        """
-        try:
-            response = client.delete_item(
-                Key = {
-                    'long_url': self.obj['long_url'],
-                    'created_time': self.obj['created_time']
-                },
-                ConditionExpression="long_url == :url",
-                ExpressionAttributeValues={
-                    ':url': self.obj['long_url']
-                }
-            )
-        except Exception as ex:
-            print(EXCEPTION_MSG.format(ex))
 
 
 def retrieve_stats(short_url):
@@ -139,9 +122,8 @@ def scan():
     try:
         response = client.scan(
             TableName=table_name,
-            ProjectionExpression='long_url, short_url, hits',
+            ProjectionExpression='long_url, short_url, last_accessed, hits',
         )
         return response
     except Exception as ex:
         print(EXCEPTION_MSG.format(ex))
-

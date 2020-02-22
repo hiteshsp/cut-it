@@ -2,42 +2,47 @@
 
 {% block section %}
 
-<div class="stats">
+<div class="stats" id="stats-tbl">
 	<table class="table table-hover table-striped table-bordered">
 		<caption>Stats for all Short URLs Generated</caption>
 		<thead class="thead-light">
 			<tr>
-				<th scope="col">Long URL</th>
-				<th scope="col">Short URL</th>
-				<th scope="col">Hits</th>
+				<th scope="col-2">Long URL</th>
+				<th scope="col-2">Short URL</th>
+				<th scope="col-2">Hits</th>
+				<th scope="col-2">Last Accessed</th>
 			</tr>
 		</thead>
-	
+
 		<tbody>
 			{% for obj in url %}
 			<tr>
-				<td>{{ obj['long_url']['S'] }}</td>
-				<td><a href="{{domain}}{{ obj['short_url']['S'] }}" target="_blank"> /{{ obj['short_url']['S'] }}</a></td>
-				<td>{{ obj['hits']['N']}}</td>
+				<td>{{ obj['long_url'] }}</td>
+				<td><a href="{{domain}}{{ obj['short_url'] }}" target="_blank"> /{{ obj['short_url'] }}</a></td>
+				<td>{{ obj['hits']}}</td>
+				<td>{{ moment(obj['last_accessed']).fromNow() }}</td>
 			</tr>
+
 			{% endfor %}
 		</tbody>
 	</table>
 </div>
 
-<div class="graph" id="graph" style="width: 500px; height: 500px; "></div>
+<div class="container" id="graph" style="width: 600px; height: 600px;"> </div>
 
 <script src="../static/js/charts.js" type="application/javascript"></script>
 <script type="text/javascript">
-google.charts.load('current', { 'packages': ['corechart'] });
-google.charts.setOnLoadCallback(drawChart);
 
-function drawChart() {
-    var data = google.visualization.arrayToDataTable([
-				['Short URL', 'Hits'],
-				{% for obj in url %}
-			    ['/{{ obj['short_url']['S'] }}', {{ obj['hits']['N'] }}],
-        		{% endfor %}
+	google.charts.load('current', { 'packages': ['corechart'] });
+	google.charts.setOnLoadCallback(drawChart);
+
+	function drawChart() {
+
+		var data = google.visualization.arrayToDataTable([
+			['Short URL', 'Hits'],
+			{% for obj in url %}
+	['/{{ obj['short_url'] }}', {{ obj['hits'] }}],
+		{% endfor %}
 		        ]);
 
 	var options = {
@@ -49,6 +54,4 @@ function drawChart() {
 	chart.draw(data, options);
 }
 </script>
-</div>
-</div>
 {% endblock %}
