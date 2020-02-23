@@ -16,9 +16,13 @@ class DynamoDB:
         Creates an Database Object which includes helper functions like
         1. search : Finds the exisiting short_url from DB
         2. insert : Inserts items into DB
+        3. update : Updates the records using short_url as hash key, it uses secondary index. 
     """
 
     def __init__(self, obj):
+        """
+            Constructor which accepts an 'obj' dict
+        """
         self.obj = obj
 
     def search(self):

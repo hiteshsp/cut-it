@@ -24,7 +24,9 @@ class HomeTest(unittest.TestCase):
         app.app_context()
 
     def tearDown(self):
-        # pass the test once test is complete
+        """
+            Post tests cleanup code    
+        """
         self.app_context.pop()
 
     @ignore_warnings

@@ -15,12 +15,19 @@ class StatsTest(unittest.TestCase):
         self.assertEqual(app.debug, False)
 
     def tearDown(self):
-        # pass the test once test is complete
-        pass
+       """
+           Post tests cleanup code     
+       """
+       pass
+    
     @ignore_warnings
     def test_stats_page(self):
+        """
+            Tests the response code for /stats page
+        """
         response = self.app.get('/stats', follow_redirects=True)        
         self.assertEqual(response.status_code, 200)
+
 
 if __name__ == "__main__":
     unittest.main()

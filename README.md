@@ -19,6 +19,8 @@ Hope you like it :)
 * [Bootstrap 4](getbootstrap.com/)
 * [Google Charts](https://developers.google.com/chart)
 * [MomentJS](https://momentjs.com/)
+* [redis](https://redis.io) "Workaround for increment counter"
+* [Coverage](https://coverage.readthedocs.io/en/coverage-5.0.3/)
 
 ## Requirements
 
@@ -73,6 +75,30 @@ To start gunicorn, run the following command
 
 ```
     $ gunicorn --bind 0.0.0.0:5000 wsgi:app
+```
+
+I have created an nginx reverse proxy and attached an ssl certificate to it for production ready system.
+
+#### Unit Tests
+To run the unit tests
+
+```
+    cd flask-app/url_shortener/tests
+```
+Now run the unit test
+
+```
+   coverage run -m unittest discover
+```
+
+To generate a report we need the run the below command
+
+```
+   coverage report -m --omit="**/test*"
+```
+To generate a html report for better representation we need to run 
+```
+   coverage html --omit="**/test"
 ```
 
 ## Authors

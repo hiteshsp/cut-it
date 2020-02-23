@@ -8,7 +8,7 @@ import random
 import os
 from dynamodb_json import json_util as json
 from datetime import datetime
-
+import redis
 
 # Prefix domain
 domain = os.environ.get('IP')
@@ -42,9 +42,16 @@ def index():
                 response = response['Items'][0]['short_url']['S']
                 app.logger.debug('Returning existing short url')
                 return render_template(SUCCESS, form=form, long_url=obj['long_url'], short_url=domain+response)
-            else:
-                # Plagiarism to check
-                obj['short_url'] = short_url.encode_url(random.randrange(1, 1000, 1), min_length=6)
+            else:                
+                redis_obj = redis.Redis(host='localhost',port=6379)
+                counter = int(redis_obj.get('ctr'))              
+
+                # Safety check if redis goes down
+                counter = random.randrange(1, 1000, 1) if counter == 0 else counter+1 
+
+                obj['short_url'] = short_url.encode_url(counter, min_length=6)                
+                
+                redis_obj.set('ctr', counter)
                 obj['created_time'] = CURRENT_TIME
                 obj['last_accessed'] = CURRENT_TIME
                 obj['hits'] = '0'
@@ -68,7 +75,6 @@ def stats():
         response = response['Items']
         response = json.loads(response)
 
-        # TODO: Change timestamp from string to int
         for obj in response:
           obj['last_accessed'] = datetime.utcfromtimestamp(
               int(obj['last_accessed']))
