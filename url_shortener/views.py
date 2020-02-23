@@ -13,12 +13,15 @@ from datetime import datetime
 # Prefix domain
 domain = os.environ.get('IP')
 
+# Default error page
+ERROR_PAGE = 'error.html'
 
+# HOME and SUCCESS 
 HOME = 'index.html'
 SUCCESS = 'success.html'
-ERROR_PAGE = 'error.html'
-CURRENT_TIME = str(int(time()))
 
+CURRENT_TIME = str(int(time()))
+TABLE_NAME = os.environ.get('TABLE_NAME')
 # Constant for exception handling
 EXCEPTION_MSG = 'Exception occurred, msg: {}'
 
@@ -40,8 +43,8 @@ def index():
                 app.logger.debug('Returning existing short url')
                 return render_template(SUCCESS, form=form, long_url=obj['long_url'], short_url=domain+response)
             else:
-                obj['short_url'] = short_url.encode_url(
-                    random.randrange(1, 1000, 1))
+                # Plagiarism to check
+                obj['short_url'] = short_url.encode_url(random.randrange(1, 1000, 1), min_length=6)
                 obj['created_time'] = CURRENT_TIME
                 obj['last_accessed'] = CURRENT_TIME
                 obj['hits'] = '0'
@@ -128,10 +131,3 @@ def get_stats(url):
     except Exception as ex:
         print('get_stats(): '+EXCEPTION_MSG.format(ex))
 
-
-@app.errorhandler(404)
-def error():
-    """
-    Error Page
-    """
-    return redirect(ERROR_PAGE), 404

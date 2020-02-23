@@ -24,7 +24,7 @@
      padding-left: 8px;  
      padding-right: 8px;
      margin-top: 1%;
-     font-size: 16px;
+     font-size: 14px;
      font-family:Verdana, Geneva, Tahoma, sans-serif;
      box-sizing: border-box;
   }
@@ -73,4 +73,7 @@
      margin-right: 20%;
      font-size: 16px;
      font-family:Verdana, Geneva, Tahoma, sans-serif;
+}
+caption{
+   caption-side: top;
 }
