@@ -40,8 +40,8 @@ def index():
                 app.logger.debug('Returning existing short url')
                 return render_template(SUCCESS, form=form, long_url=obj['long_url'], short_url=domain+response)
             else:
-                obj['short_url'] = short_url.encode_url(
-                    random.randrange(1, 1000, 1))
+                # Plagiarism to check
+                obj['short_url'] = short_url.encode_url(random.randrange(1, 1000, 1), min_length=6)
                 obj['created_time'] = CURRENT_TIME
                 obj['last_accessed'] = CURRENT_TIME
                 obj['hits'] = '0'

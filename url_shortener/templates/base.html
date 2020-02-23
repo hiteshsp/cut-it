@@ -10,33 +10,31 @@
 	<link rel="stylesheet" href="{{url_for('static',filename='css/main.css')}}">
 	<link rel="shortcut icon" href="{{url_for('static',filename='favicon.ico')}}" type="image/x-icon">
 	{{ moment.include_jquery() }}
-    {{ moment.include_moment() }}
+	{{ moment.include_moment() }}
 	{% block head %} {% endblock %}
 </head>
 
 <body>
 	<header>
-		<nav class="navbar navbar-expand-lg navbar-expand-md navbar-dark bg-primary">
-			<div class="collapse navbar-collapse">
-				<ul class="navbar-nav mr-auto">
-					<li class="nav-item">
-						<a class="nav-link" href="/">Home</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link" href="/stats">Stats</a>
-					</li>
-				</ul>
-			</div>
+		<nav class="navbar navbar-expand-sm navbar-dark bg-primary">
+			<ul class="navbar-nav mr-auto">
+				<li class="nav-item">
+					<a class="nav-link" href="/">Home</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="/stats">Stats</a>
+				</li>
+			</ul>
 		</nav>
 	</header>
-	
+
 	<section>
 		{% block section %} {% endblock %}
 	</section>
 	<footer class="page-footer font-small">
 		<p>&copy; 2020 Cut.it</p>
 	</footer>
-	
+
 	<script src="../static/js/jquery.js"
 		integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
 		crossorigin="anonymous"></script>
@@ -46,7 +44,7 @@
 	<script src="../static/js/bootstrap.js"
 		integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
 		crossorigin="anonymous"></script>
-	
+	{% block script %} {% endblock %}
 </body>
 
 </html>

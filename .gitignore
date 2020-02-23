@@ -5,3 +5,4 @@ url_shortener.egg-info/*
 .github/*
 .vscode/*
 logs/*
+error.log

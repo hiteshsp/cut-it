@@ -1,10 +1,15 @@
+
 {% extends 'base.html' %}
+
+{% block head %}
+<link rel="stylesheet" href="{{url_for('static',filename='css/datatable.css')}}">
+{% endblock %}
 
 {% block section %}
 <div class="row m-0">
-<div class="stats p-8 col-md-6 col-sm-12" id="stats-tbl">
-	<table class="table table-hover table-striped table-bordered">
-		<caption>Stats for all Short URLs Generated</caption>
+<div class="stats p-8 col-md-6 col-sm-12">
+	<table class="table table-hover table-bordered table-striped" id="stats-tbl">
+	 <caption>Stats for all Short URLs Generated</caption>
 		<thead class="thead-light">
 			<tr>
 				<th scope="col">Long URL</th>
@@ -33,10 +38,8 @@
 
 </div>
 
-
-
 <script src="../static/js/charts.js" type="application/javascript"></script>
-<script type="text/javascript">
+<script type="application/javascript">
 
 	google.charts.load('current', { 'packages': ['corechart'] });
 	google.charts.setOnLoadCallback(drawChart);
@@ -59,4 +62,19 @@
 	chart.draw(data, options);
 }
 </script>
+
+
+<script type="application/javascript">
+	
+	$(document).ready(function(){
+	$("#stats-tbl").DataTable({
+		"order" : [[2,"desc"]],
+		"lengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]]
+	});
+	})
+</script>
+{% endblock %}
+{% block script %}
+<script src="../static/js/datatable.js" type="application/javascript"></script>
+<script src="../static/js/datatables-bootstrap.js" type="application/javascript"></script>
 {% endblock %}
