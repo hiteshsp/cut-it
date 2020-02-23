@@ -1,8 +1,9 @@
 url_shortener/secrets.txt
 venv/*
-__pycache__/*
+**/__pycache__/
 url_shortener.egg-info/*
 .github/*
 .vscode/*
 logs/*
 error.log
+.coverage

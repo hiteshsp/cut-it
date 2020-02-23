@@ -13,12 +13,15 @@ from datetime import datetime
 # Prefix domain
 domain = os.environ.get('IP')
 
+# Default error page
+ERROR_PAGE = 'error.html'
 
+# HOME and SUCCESS 
 HOME = 'index.html'
 SUCCESS = 'success.html'
-ERROR_PAGE = 'error.html'
-CURRENT_TIME = str(int(time()))
 
+CURRENT_TIME = str(int(time()))
+TABLE_NAME = os.environ.get('TABLE_NAME')
 # Constant for exception handling
 EXCEPTION_MSG = 'Exception occurred, msg: {}'
 
@@ -128,10 +131,3 @@ def get_stats(url):
     except Exception as ex:
         print('get_stats(): '+EXCEPTION_MSG.format(ex))
 
-
-@app.errorhandler(404)
-def error():
-    """
-    Error Page
-    """
-    return redirect(ERROR_PAGE), 404
