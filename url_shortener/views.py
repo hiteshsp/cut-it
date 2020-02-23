@@ -127,7 +127,7 @@ def get_stats(url):
 
         app.logger.debug('Short URL response : {}'.format(response))
 
-        return render_template('short-stats.html', long_url=long_url, short_url=url, hits=hits)
+        return render_template('short-stats.html', long_url=long_url, short_url=url, domain=domain, hits=hits)
     except Exception as ex:
         print('get_stats(): '+EXCEPTION_MSG.format(ex))
 
