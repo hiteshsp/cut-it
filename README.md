@@ -6,7 +6,7 @@ Hope you like it :)
 
 ## Architecture Diagram
 
-![Image of URL Shortener Architecture](https://github.com/hiteshsp/flask-api-modular/architecture-diagram.png)
+![Image of URL Shortener Architecture](https://github.com/hiteshsp/flask-api-modular/blob/master/architecture-diagram.png)
 
 ## Features
 
