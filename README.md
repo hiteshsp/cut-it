@@ -4,6 +4,10 @@ This application is built to shorten the URL's like bitly, goo.gl. It's simple, 
 
 Hope you like it :)
 
+## Architecture Diagram
+
+![Image of URL Shortener Architecture](https://github.com/hiteshsp/flask-api-modular/architecture-diagram.png)
+
 ## Features
 
 * Generates the short url randomly without any conflicts
@@ -26,7 +30,7 @@ Hope you like it :)
 
 * AWS DynamoDB
 * Python3 with pip installed.
-* Any OS
+* Linux
 
 
 ## Installation
