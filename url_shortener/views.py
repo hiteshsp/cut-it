@@ -1,139 +1,141 @@
-from url_shortener import app
-from flask import render_template, url_for, redirect, request
-from url_shortener.forms import UrlForm
-from url_shortener.db import DynamoDB, retrieve_stats, scan
-import short_url
-from time import time
 import random
-import os
+import redis
+import short_url
 from dynamodb_json import json_util as json
 from datetime import datetime
-import redis
+from flask import render_template, redirect
+from time import time
 
-# Prefix domain
-domain = os.environ.get('IP')
+from url_shortener import app
+from url_shortener.config import BASE_URL, CURRENT_TIME, ERROR_PAGE, EXCEPTION_MESSAGE, URL_PAGE, HOME_PAGE
+from url_shortener.db import Persistence, get_short_url_statistics, get_statistics
+from url_shortener.forms import URLForm
 
-# Default error page
-ERROR_PAGE = 'error.html'
 
-# HOME and SUCCESS 
-HOME = 'index.html'
-SUCCESS = 'success.html'
-
-CURRENT_TIME = str(int(time()))
-TABLE_NAME = os.environ.get('TABLE_NAME')
-# Constant for exception handling
-EXCEPTION_MSG = 'Exception occurred, msg: {}'
+class ShortURL:
+    identifier: str
+    created_time: str
+    last_accessed: str
+    hits: str
 
 
 @app.route('/', methods=['POST', 'GET'])
-def index():
-    """
-        This method renders the HOME page of the app.
-    """
+def shortener() -> None:
     try:
-        form = UrlForm()
-        if form.validate_on_submit():
-            obj = dict()
-            obj['long_url'] = form.long_url.data
-            db_obj = DynamoDB(obj)
-            flag, response = db_obj.search()
-            if flag == True:
-                response = response['Items'][0]['short_url']['S']
+        url_form = URLForm()
+        if url_form.validate_on_submit():
+            long_url = url_form.long_url.data
+            persistor = Persistence()
+            url_exists, short_url_identifier = get_short_url_identifier(persistor, long_url)
+            if url_exists:
                 app.logger.debug('Returning existing short url')
-                return render_template(SUCCESS, form=form, long_url=obj['long_url'], short_url=domain+response)
-            else:                
-                redis_obj = redis.Redis(host='localhost',port=6379)
-                counter = int(redis_obj.get('ctr'))              
+                return render_template(URL_PAGE,
+                                       form=url_form,
+                                       long_url=long_url,
+                                       short_url=BASE_URL + short_url_identifier)
+            else:
+                error, short_url_identifier = create_short_url(persistor, long_url)
+                if error is not None:
+                    app.logger.error("{}".format(error))
 
-                # Safety check if redis goes down
-                counter = random.randrange(1, 1000, 1) if counter == 0 else counter+1 
+                return render_template(URL_PAGE,
+                                       form=url_form,
+                                       long_url=long_url,
+                                       short_url=BASE_URL + short_url_identifier)
 
-                obj['short_url'] = short_url.encode_url(counter, min_length=6)                
-                
-                redis_obj.set('ctr', counter)
-                obj['created_time'] = CURRENT_TIME
-                obj['last_accessed'] = CURRENT_TIME
-                obj['hits'] = '0'
-                db_obj.insert()
-                app.logger.debug('index(): Insertion Successful')
-                return render_template(SUCCESS, form=form, long_url=obj['long_url'], short_url=domain+obj['short_url'])
-        return render_template(HOME, form=form)
-    except Exception as ex:
-        print('index(): '+EXCEPTION_MSG.format(ex))
+        return render_template(HOME_PAGE, form=url_form)
+    except Exception as e:
+        app.logger.debug('index(): ' + EXCEPTION_MESSAGE.format(e))
+
+
+def get_short_url_identifier(persistor, long_url) -> bool:
+    url_exists, short_url_identifier = persistor.search(long_url)
+    return url_exists, short_url_identifier
+
+
+def create_short_url(persistor, long_url):
+    try:
+        identifier = get_unique_identifier()
+        new_short_url = ShortURL()
+        new_short_url.identifier = short_url.encode_url(identifier, min_length=6)
+        new_short_url.created_time = CURRENT_TIME
+        new_short_url.last_accessed = CURRENT_TIME
+        new_short_url.hits = '0'
+        persistor.insert(long_url, new_short_url)
+        app.logger.debug('index(): Insertion Successful')
+    except Exception as e:
+        return e, ''
+    return None, new_short_url.identifier
+
+
+def get_unique_identifier():
+    try:
+        identifier_tracker = redis.Redis(host='localhost', port=6379)
+        existing_identifier = int(identifier_tracker.get('identifier'))
+        unique_identifier = random.randrange(1, 1000, 1) if existing_identifier == 0 else existing_identifier + 1
+        identifier_tracker.set('identifier', unique_identifier)
+        return unique_identifier
+    except Exception as e:
+        app.logger.debug("{}".format(e))
 
 
 @app.route("/stats")
-def stats():
-    """
-        This method is used to display the statistics of the shortened URL's
-    """
+def display_statistics() -> None:
     try:
-        response = scan()
-        if response['Count'] == 0:
-            return render_template(ERROR_PAGE)
-        response = response['Items']
-        response = json.loads(response)
-
-        for obj in response:
-          obj['last_accessed'] = datetime.utcfromtimestamp(
-              int(obj['last_accessed']))
-
-        response = sorted(response, key=lambda obj: obj['hits'], reverse=True)
-        app.logger.debug('Response Object from scan() {}'.format(response))
-        return render_template('stats.html', url=response, domain=domain)
-    except Exception as ex:
-        print("stats(): "+EXCEPTION_MSG.format(ex))
-
-
-@app.route("/<path:url>", methods=['GET'])
-def short_urls(url):
-    """
-        Paths to shorturls
-    """
-    try:
-        response = retrieve_stats(url)
-        if response['Count'] == 0:
+        statistics = json.loads(get_statistics())
+        if not statistics:
             return render_template(ERROR_PAGE)
 
-        obj = dict()
-        # long_url and created_time are key attributes
-        # They are needed to update the hits and last_access time
-        obj['long_url'] = response['Items'][0]['long_url']['S']
-        obj['created_time'] = response['Items'][0]['created_time']['S']
+        for short_url_statistics in statistics:
+            short_url_statistics['last_accessed'] = datetime.utcfromtimestamp(
+                int(short_url_statistics['last_accessed']))
 
-        # Capturing the hits and last_accessed time for the update
-        obj['last_accessed'] = str(int(time()))
-        obj['hits'] = str(int(response['Items'][0]['hits']['N']) + 1)
-
-        app.logger.debug(' Response Object of statistics:\n %s', obj)
-
-        db = DynamoDB(obj)
-        db.update()
-        return redirect(obj['long_url'])
-    except Exception as ex:
-        print('short_urls(): '+EXCEPTION_MSG.format(ex))
+        statistics = sorted(statistics, key=lambda url: short_url_statistics['hits'], reverse=True)        
+        app.logger.debug("display statistics()")
+        return render_template('stats.html', url=statistics, domain=BASE_URL)
+    except Exception as e:
+        app.logger.debug("stats(): " + EXCEPTION_MESSAGE.format(e))
 
 
-@app.route("/<path:url>/stats")
-def get_stats(url):
-    """
-        Renders Stats per ShortURL
-    """
-    # Retrieving the given short url's stats from the table
+@app.route("/<path:short_url_identifier>", methods=['GET'])
+def route_short_url(short_url_identifier) -> None:
     try:
-        response = retrieve_stats(url)
+        short_url_statistics = get_short_url_statistics(short_url_identifier)
+        if short_url_statistics['Count'] == 0:
+            return render_template(ERROR_PAGE)
 
-        # If the response is zero.
-        if response['Count'] == 0:
+        existing_short_url = ShortURL()
+        existing_short_url.created_time = short_url_statistics['Items'][0]['created_time']['S']
+        existing_short_url.last_accessed = str(int(time()))
+        existing_short_url.hits = str(int(short_url_statistics['Items'][0]['hits']['N']) + 1)
+        long_url = short_url_statistics['Items'][0]['long_url']['S']
+        persistor = Persistence()
+        persistor.update(long_url, existing_short_url)
+        return redirect(long_url)
+    except Exception as e:
+        app.logger.debug('short_urls(): ' + EXCEPTION_MESSAGE.format(e))
+
+
+@app.route("/<path:short_url_identifier>/stats")
+def display_short_url_statistics(short_url_identifier) -> None:
+    try:
+        short_url_statistics = get_short_url_statistics(short_url_identifier)
+        if short_url_statistics['Count'] == 0:
             return "Invalid Short URL"
 
-        long_url = response['Items'][0]['long_url']['S']
-        hits = response['Items'][0]['hits']['N']
+        long_url = short_url_statistics['Items'][0]['long_url']['S']
+        hits = short_url_statistics['Items'][0]['hits']['N']
+        app.logger.debug('display_short_url_statistics()')
+        return render_template('short-stats.html',
+                               long_url=long_url,
+                               short_url=short_url_identifier,
+                               domain=BASE_URL,
+                               hits=hits)
+    except Exception as e:
+        app.logger.debug('get_stats(): ' + EXCEPTION_MESSAGE.format(e))
 
-        app.logger.debug('Short URL response : {}'.format(response))
 
-        return render_template('short-stats.html', long_url=long_url, short_url=url, domain=domain, hits=hits)
-    except Exception as ex:
-        print('get_stats(): '+EXCEPTION_MSG.format(ex))
-
+@app.errorhandler(404)
+def page_not_found():
+    return redirect(ERROR_PAGE), 404
+    

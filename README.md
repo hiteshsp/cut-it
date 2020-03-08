@@ -77,7 +77,9 @@ To start gunicorn, run the following command
     $ gunicorn --bind 0.0.0.0:5000 wsgi:app
 ```
 
-I have created an nginx reverse proxy and attached an ssl certificate to it for production ready system.
+I have created an nginx reverse proxy and attached an ssl certificate to it to make it production ready 
+system.
+You can find the systemd file 'cut-it.service' and an environment file 'cut-it.env'
 
 #### Unit Tests
 To run the unit tests
