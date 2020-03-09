@@ -1,130 +1,99 @@
 import boto3
-import os
-from time import time
+from typing import Tuple
 from url_shortener import app
-
-# Boto Client to interact with the DynamoDB
-client = boto3.client('dynamodb')
-table_name = os.environ.get('TABLE_NAME')
-
-# Constant for exception handling
-EXCEPTION_MSG = 'Exception occurred, msg: {}'
+from url_shortener.config import EXCEPTION_MESSAGE, URL_DETAILS
 
 
-class DynamoDB:
-    """
-        Creates an Database Object which includes helper functions like
-        1. search : Finds the exisiting short_url from DB
-        2. insert : Inserts items into DB
-    """
+class Persistence:
+    def __init__(self):
+        self.db_client = boto3.client('dynamodb')
 
-    def __init__(self, obj):
-        self.obj = obj
-
-    def search(self):
-        """
-           Searches for duplicates
-           If found returns <'True', response object>
-           else return 'False'
-        """
+    def search_for_existing_short_url(self, long_url) -> Tuple[bool, str]:
         try:
-            response = client.query(
-                TableName=table_name,
+            query_result = self.db_client.query(
+                TableName=URL_DETAILS,
                 ExpressionAttributeValues={
                     ':url': {
-                        'S': self.obj['long_url'],
+                        'S': long_url,
                     },
                 },
                 KeyConditionExpression='long_url = :url',
-                ProjectionExpression='short_url'
+                ProjectionExpression='short_url_identifier'
             )
 
-            if response['Count'] == 0:
+            if query_result['Count'] == 0:
                 return False, "empty"
 
-            return True, response
+            existing_short_url_identifier = query_result['Items'][0]['short_url_identifier']['S']
+            return True, existing_short_url_identifier
         except Exception as ex:
-            print(EXCEPTION_MSG.format(ex))
+            app.logger.debug(EXCEPTION_MESSAGE.format(ex))
 
-    def insert(self):
-        """
-        This method inserts items into the table
-        """
+    def insert_new_short_url(self, long_url, short_url):
         try:
-            item = client.put_item(TableName=table_name,
-                                   Item={
-                                       'long_url': {
-                                           'S': self.obj['long_url']
-                                       },
-                                       'last_accessed': {
-                                           'S': self.obj['last_accessed']
-                                       },
-                                       'short_url': {
-                                           'S': self.obj['short_url']
-                                       },
-                                       'hits': {
-                                           'N': self.obj['hits']
-                                       },
-                                       'created_time': {
-                                           'S': self.obj['created_time']
-                                       },
-                                   })
-            return item
+            insert_query_result = self.db_client.put_item(TableName=URL_DETAILS,
+                                                          Item={
+                                                              'long_url': {
+                                                                  'S': long_url
+                                                              },
+                                                              'last_accessed_time': {
+                                                                  'S': short_url.last_accessed_time
+                                                              },
+                                                              'short_url_identifier': {
+                                                                  'S': short_url.identifier
+                                                              },
+                                                              'hits': {
+                                                                  'N': short_url.hits
+                                                              },
+                                                              'created_time': {
+                                                                  'S': short_url.created_time
+                                                              },
+                                                          })
+            return insert_query_result
         except Exception as ex:
-            app.logger.error(EXCEPTION_MSG.format(ex))
+            app.logger.error(EXCEPTION_MESSAGE.format(ex))
 
-    def update(self):
-        """
-            Update a field of the table
-        """
+    def update_on_page_visit(self, long_url, short_url):
         try:
-            response = client.update_item(
-                TableName=table_name,
+            update_result = self.db_client.update_item(
+                TableName=URL_DETAILS,
                 Key={
-                    'long_url': {'S': self.obj['long_url']},
-                    'created_time': {'S': self.obj['created_time']}
+                    'long_url': {'S': long_url},
+                    'created_time': {'S': short_url.created_time}
                 },
-                UpdateExpression="set hits = :h, last_accessed = :la",
+                UpdateExpression="set hits = :h, last_accessed_time = :la",
                 ExpressionAttributeValues={
-                    ':h': {'N': self.obj['hits']},
-                    ':la': {'S': self.obj['last_accessed']}
+                    ':h': {'N': short_url.hits},
+                    ':la': {'S': short_url.last_accessed_time}
                 },
                 ReturnValues="UPDATED_NEW")
-            return response
+            return update_result
+        except Exception as e:
+            app.logger.error(EXCEPTION_MESSAGE.format(e))
+
+    def get_short_url_statistics(self, short_url_identifier):
+        try:
+            query_statistics_result = self.db_client.query(
+                TableName=URL_DETAILS,
+                IndexName='short_url_identifier-index',
+                ExpressionAttributeValues={':url': {
+                    'S': short_url_identifier,
+                },
+                },
+                KeyConditionExpression='short_url_identifier = :url',
+                ProjectionExpression='long_url, created_time, last_accessed_time, hits'
+
+            )
+            return query_statistics_result
         except Exception as ex:
-            app.logger.error(EXCEPTION_MSG.format(ex))
+            app.logger.error(EXCEPTION_MESSAGE.format(ex))
 
-
-def retrieve_stats(short_url):
-    """
-          Returns response which contains long_url, created_time, last_accessed, hits
-    """
-    try:
-        response = client.query(
-            TableName=table_name,
-            IndexName='short_url-index',
-            ExpressionAttributeValues={':url': {
-                'S': short_url,
-            },
-            },
-            KeyConditionExpression='short_url = :url',
-            ProjectionExpression='long_url, created_time, last_accessed, hits'
-
-        )
-        return response
-    except Exception as ex:
-        app.logger.error(EXCEPTION_MSG.format(ex))
-
-
-def scan():
-    """
-        Returns all records for stats page
-    """
-    try:
-        response = client.scan(
-            TableName=table_name,
-            ProjectionExpression='long_url, short_url, last_accessed, hits',
-        )
-        return response
-    except Exception as ex:
-        app.logger.error(EXCEPTION_MSG.format(ex))
+    def get_statistics(self):
+        try:
+            scan_statistics_result = self.db_client.scan(
+                TableName=URL_DETAILS,
+                ProjectionExpression='long_url, short_url_identifier, last_accessed_time, hits',
+            )
+            return scan_statistics_result['Items']
+        except Exception as e:
+            app.logger.error(EXCEPTION_MESSAGE.format(e))
