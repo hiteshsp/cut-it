@@ -1,10 +1,8 @@
 import unittest
 from pynamodb.connection import TableConnection
-
 from tests.ignore_warnings import ignore_warnings
 from tests.utils import get_time
 from url_shortener import app
-
 
 
 class HomeTest(unittest.TestCase):
@@ -36,7 +34,7 @@ class HomeTest(unittest.TestCase):
 
     @ignore_warnings
     def test_form_failure(self):
-        data={'long_url': 'http://yahoo.com', 'created_time': get_time()}
+        data = {'long_url': 'http://yahoo.com', 'created_time': get_time()}
         response = self.app.post(
             '/', data=data)
         self.assertEqual(response.status_code, 200)
@@ -44,7 +42,7 @@ class HomeTest(unittest.TestCase):
             conn = TableConnection('cut-it-datastore', region='eu-north-1')
             conn.delete_item(data['long_url'], data['created_time'])
         except Exception as ex:
-               app.logger.info("Exception in test_form_failure {}".format(ex))
+            app.logger.info("Exception in test_form_failure {}".format(ex))
 
 
 if __name__ == "__main__":

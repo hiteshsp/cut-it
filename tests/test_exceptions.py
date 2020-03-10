@@ -1,8 +1,8 @@
 import unittest
-
 from url_shortener import app
 from tests.ignore_warnings import ignore_warnings
 from werkzeug import exceptions
+
 
 class ExceptionsTest(unittest.TestCase):
     @ignore_warnings
