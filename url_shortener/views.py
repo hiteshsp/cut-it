@@ -29,7 +29,7 @@ def display_home_page():
 
 
 @app.route('/', methods=['POST'])
-def shortner():
+def shortener():
     try:
         url_form = URLForm()
     except Exception as e:
@@ -159,14 +159,15 @@ def route_short_url(short_url_identifier) -> None:
 def display_short_url_statistics(short_url_identifier) -> None:
     try:
         data_store = DataStorage()
-        short_url_statistics = data_store.get_short_url_statistics(
-            short_url_identifier)
+        short_url_statistics = json.loads(data_store.get_short_url_statistics(
+            short_url_identifier))
         del data_store
         if short_url_statistics['Count'] == 0:
             return "<h1>Invalid Short URL</h1>"
 
-        long_url = short_url_statistics['Items'][0]['long_url']['S']
-        hits = short_url_statistics['Items'][0]['hits']['N']
+        short_url_statistics = short_url_statistics['Items'][0]
+        long_url = short_url_statistics['long_url']
+        hits = short_url_statistics['hits']
         app.logger.debug(
             'Short URL response : {}'.format(short_url_statistics))
         return render_template('short-stats.html',
@@ -179,5 +180,5 @@ def display_short_url_statistics(short_url_identifier) -> None:
 
 
 @app.errorhandler(404)
-def page_not_found() -> None:
+def page_not_found(error) -> None:
     return redirect(config.ERROR_PAGE), 404

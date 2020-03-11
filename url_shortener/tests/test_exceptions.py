@@ -1,6 +1,6 @@
 import unittest
 from url_shortener import app
-from tests.ignore_warnings import ignore_warnings
+from url_shortener.tests.ignore_warnings import ignore_warnings
 from werkzeug import exceptions
 
 
@@ -27,6 +27,11 @@ class ExceptionsTest(unittest.TestCase):
     def test_stats_page(self):
         self.app.get('/stats', follow_redirects=True)
         self.assertRaises(exceptions.InternalServerError)
+
+    @ignore_warnings
+    def test_error_page(self):
+        error_page = self.app.get('/abcd', follow_redirects=True)
+        print(error_page.status_code)
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 from pynamodb.models import Model
 from pynamodb.attributes import NumberAttribute, UnicodeAttribute
 from pynamodb.indexes import GlobalSecondaryIndex, AllProjection
-import os
+
 
 class ShortURLIndex(GlobalSecondaryIndex):
     class Meta:
@@ -9,6 +9,7 @@ class ShortURLIndex(GlobalSecondaryIndex):
         write_capacity_units = 1
         projection = AllProjection()
     short_url = UnicodeAttribute(default=0, hash_key=True)
+
 
 class URLModel(Model):
     class Meta:
@@ -23,7 +24,9 @@ class URLModel(Model):
     short_url = UnicodeAttribute()
     last_accessed = UnicodeAttribute()
 
+
 test_obj = URLModel()
+
 
 # item = test_obj.get('http://google.com', '1582444849')
 # print(item.short_url)
