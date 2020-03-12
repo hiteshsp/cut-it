@@ -20,12 +20,12 @@
 		</thead>
 
 		<tbody>
-			{% for obj in url %}
+			{% for url in urls %}
 			<tr>
-				<td>{{ obj['long_url'] }}</td>
-				<td><a href="{{domain}}{{ obj['short_url'] }}" target="_blank"> /{{ obj['short_url'] }}</a></td>
-				<td>{{ obj['hits']}}</td>
-				<td>{{ moment(obj['last_accessed']).fromNow() }}</td>
+				<td>{{ url['long_url'] }}</td>
+				<td><a href="{{domain}}{{url['short_url_identifier']}}" target="_blank"> /{{ url['short_url_identifier'] }}</a></td>
+				<td>{{ url['hits']}}</td>
+				<td>{{ moment(url['last_accessed_time']).fromNow() }}</td>
 			</tr>
 
 			{% endfor %}
@@ -48,8 +48,8 @@
 
 		var data = google.visualization.arrayToDataTable([
 			['Short URL', 'Hits'],
-			{% for obj in url %}
-	['/{{ obj['short_url'] }}', {{ obj['hits'] }}],
+			{% for url in urls %}
+	['/{{ url['short_url_identifier'] }}', {{ url['hits'] }}],
 		{% endfor %}
 		        ]);
 

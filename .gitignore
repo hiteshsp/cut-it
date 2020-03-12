@@ -7,5 +7,5 @@ url_shortener.egg-info/*
 logs/*
 error.log
 .coverage
-**/htmlcov/*
-tests/*
+secrets-windows-1.txt
+nohup.out
