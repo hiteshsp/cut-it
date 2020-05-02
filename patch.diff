@@ -1,0 +1,366 @@
+diff --git a/tests/test_short_url.py b/tests/test_short_url.py
+index 9b5b923..73193fe 100644
+--- a/tests/test_short_url.py
++++ b/tests/test_short_url.py
+@@ -6,7 +6,7 @@ from werkzeug import exceptions
+ from tests.utils import get_time
+ from url_shortener import app
+ from url_shortener.views import ShortURL
+-from url_shortener.db import Persistence
++from url_shortener.db import DataStorage
+ from tests.ignore_warnings import ignore_warnings
+ 
+ test_long_url = "http://abc.xyz"
+@@ -24,8 +24,8 @@ class ShortURLTest(unittest.TestCase):
+         test_short_url.identifier = short_url.encode_url(1, min_length=6)
+         test_short_url.hits = '0'
+         test_short_url.last_accessed_time = get_time()
+-        test_persister = Persistence()
+-        test_persister.insert_new_short_url(test_long_url, test_short_url)
++        test_data_store = DataStorage()
++        test_data_store.insert(test_long_url, test_short_url)
+ 
+     @ignore_warnings
+     def tearDown(self):
+diff --git a/url_shortener/__init__.py b/url_shortener/__init__.py
+index a55d12c..979eef2 100644
+--- a/url_shortener/__init__.py
++++ b/url_shortener/__init__.py
+@@ -1,6 +1,9 @@
+ import os
+ from flask import Flask, redirect
+ from flask_moment import Moment
++from url_shortener import views
++from url_shortener import db
++from url_shortener import forms
+ 
+ app_configs = ['SECRET_KEY', 'IP', 'TABLE_NAME']
+ for app_config in app_configs:
+@@ -9,8 +12,4 @@ for app_config in app_configs:
+ 
+ app = Flask(__name__)
+ app.config.from_pyfile('config.py')
+-url_last_accessed = Moment(app)
+-
+-from url_shortener import views
+-from url_shortener import db
+-from url_shortener import forms
++url_last_accessed = Moment(app)
+\ No newline at end of file
+diff --git a/url_shortener/config.py b/url_shortener/config.py
+index 73ca86e..5422591 100644
+--- a/url_shortener/config.py
++++ b/url_shortener/config.py
+@@ -7,5 +7,5 @@ ERROR_PAGE = 'error.html'
+ HOME_PAGE = 'index.html'
+ URL_PAGE = 'success.html'
+ CURRENT_TIME = str(int(time()))
+-URL_DETAILS = os.environ.get('TABLE_NAME')
++URL_STORE = os.environ.get('TABLE_NAME')
+ EXCEPTION_MESSAGE = 'Exception occurred, msg: {}'
+diff --git a/url_shortener/db.py b/url_shortener/db.py
+index 5631e02..14bc145 100644
+--- a/url_shortener/db.py
++++ b/url_shortener/db.py
+@@ -1,99 +1,114 @@
+ import boto3
+ from typing import Tuple
+ from url_shortener import app
+-from url_shortener.config import EXCEPTION_MESSAGE, URL_DETAILS
++from url_shortener.config import EXCEPTION_MESSAGE, URL_STORE
+ 
+ 
+-class Persistence:
++class DataStorage:
+     def __init__(self):
+         self.db_client = boto3.client('dynamodb')
+ 
+-    def search_for_existing_short_url(self, long_url) -> Tuple[bool, str]:
++    def search(self, long_url) -> Tuple[bool, str]:
+         try:
+-            query_result = self.db_client.query(
+-                TableName=URL_DETAILS,
+-                ExpressionAttributeValues={
+-                    ':url': {
+-                        'S': long_url,
+-                    },
+-                },
+-                KeyConditionExpression='long_url = :url',
+-                ProjectionExpression='short_url_identifier'
+-            )
+-
+-            if query_result['Count'] == 0:
+-                return False, "empty"
+-
+-            existing_short_url_identifier = query_result['Items'][0]['short_url_identifier']['S']
+-            return True, existing_short_url_identifier
++            return search_for_existing_short_url(self, long_url)
+         except Exception as ex:
+             app.logger.debug(EXCEPTION_MESSAGE.format(ex))
+ 
+-    def insert_new_short_url(self, long_url, short_url):
++    def insert(self, long_url, short_url):
+         try:
+-            insert_query_result = self.db_client.put_item(TableName=URL_DETAILS,
+-                                                          Item={
+-                                                              'long_url': {
+-                                                                  'S': long_url
+-                                                              },
+-                                                              'last_accessed_time': {
+-                                                                  'S': short_url.last_accessed_time
+-                                                              },
+-                                                              'short_url_identifier': {
+-                                                                  'S': short_url.identifier
+-                                                              },
+-                                                              'hits': {
+-                                                                  'N': short_url.hits
+-                                                              },
+-                                                              'created_time': {
+-                                                                  'S': short_url.created_time
+-                                                              },
+-                                                          })
+-            return insert_query_result
++            return insert_new_short_url(self, long_url, short_url)
+         except Exception as ex:
+             app.logger.error(EXCEPTION_MESSAGE.format(ex))
+ 
+-    def update_on_page_visit(self, long_url, short_url):
++    def update(self, long_url, short_url):
+         try:
+-            update_result = self.db_client.update_item(
+-                TableName=URL_DETAILS,
+-                Key={
+-                    'long_url': {'S': long_url},
+-                    'created_time': {'S': short_url.created_time}
+-                },
+-                UpdateExpression="set hits = :h, last_accessed_time = :la",
+-                ExpressionAttributeValues={
+-                    ':h': {'N': short_url.hits},
+-                    ':la': {'S': short_url.last_accessed_time}
+-                },
+-                ReturnValues="UPDATED_NEW")
+-            return update_result
++            return update_on_page_visit(self, long_url, short_url)
+         except Exception as e:
+             app.logger.error(EXCEPTION_MESSAGE.format(e))
+ 
+-    def get_short_url_statistics(self, short_url_identifier):
++    def get_statistics(self, short_url_identifier):
+         try:
+-            query_statistics_result = self.db_client.query(
+-                TableName=URL_DETAILS,
+-                IndexName='short_url_identifier-index',
+-                ExpressionAttributeValues={':url': {
+-                    'S': short_url_identifier,
+-                },
+-                },
+-                KeyConditionExpression='short_url_identifier = :url',
+-                ProjectionExpression='long_url, created_time, last_accessed_time, hits'
+-
+-            )
+-            return query_statistics_result
++            return get_short_url_statistics(self, short_url_identifier)
+         except Exception as ex:
+             app.logger.error(EXCEPTION_MESSAGE.format(ex))
+ 
+-    def get_statistics(self):
++    def get_statistics_for_all_urls(self):
+         try:
+-            scan_statistics_result = self.db_client.scan(
+-                TableName=URL_DETAILS,
+-                ProjectionExpression='long_url, short_url_identifier, last_accessed_time, hits',
+-            )
+-            return scan_statistics_result['Items']
++            return get(self)
+         except Exception as e:
+             app.logger.error(EXCEPTION_MESSAGE.format(e))
++    
++    def search_for_existing_short_url(self, long_url) -> Tuple[bool, str]:
++        query_result = self.db_client.query(
++            TableName=URL_STORE,
++            ExpressionAttributeValues={
++                ':url': {
++                    'S': long_url,
++                },
++            },
++            KeyConditionExpression='long_url = :url',
++            ProjectionExpression='short_url_identifier'
++        )
++        if query_result['Count'] == 0:
++            return False, "empty"
++        
++        existing_short_url_identifier = query_result['Items'][0]['short_url_identifier']['S']
++        return True, existing_short_url_identifier
++    
++    def insert_new_short_url(self, long_url, short_url):
++        insert_query_result = self.db_client.put_item(
++            TableName=URL_STORE,
++            Item={
++                'long_url': {
++                    'S': long_url
++                 },
++                'last_accessed_time': {
++                    'S': short_url.last_accessed_time
++                },
++                'short_url_identifier': {
++                    'S': short_url.identifier
++                },
++                'hits': {
++                    'N': short_url.hits
++                },
++                'created_time': {
++                    'S': short_url.created_time
++                },
++            })
++        return insert_query_result
++
++    def update_on_page_visit(self, long_url, short_url):
++        update_result = self.db_client.update_item(
++            TableName=URL_STORE,
++            Key={
++                'long_url': {'S': long_url},
++                'created_time': {'S': short_url.created_time}
++            },
++            UpdateExpression="set hits = :h, last_accessed_time = :la",
++            ExpressionAttributeValues={
++                ':h': {'N': short_url.hits},
++                ':la': {'S': short_url.last_accessed_time}
++            },
++            ReturnValues="UPDATED_NEW")
++        return update_result
++
++    def get_short_url_statistics(self, short_url_identifier):
++        query_statistics_result = self.db_client.query(
++            TableName=URL_STORE,
++            IndexName='short_url_identifier-index',
++            ExpressionAttributeValues={
++                ':url': {
++                    'S': short_url_identifier,
++                },
++            },
++            KeyConditionExpression='short_url_identifier = :url',
++            ProjectionExpression='long_url, created_time, last_accessed_time, hits'
++        )
++        return query_statistics_result
++    
++    def get(self):
++        scan_statistics_result = self.db_client.scan(
++            TableName=URL_STORE,
++            ProjectionExpression='long_url, short_url_identifier, last_accessed_time, hits',
++        )
++        return scan_statistics_result['Items']
+\ No newline at end of file
+diff --git a/url_shortener/views.py b/url_shortener/views.py
+index 02bb1ef..2ef54b1 100644
+--- a/url_shortener/views.py
++++ b/url_shortener/views.py
+@@ -8,7 +8,7 @@ from time import time
+ from typing import Tuple
+ from url_shortener import app
+ from url_shortener.config import BASE_URL, CURRENT_TIME, ERROR_PAGE, EXCEPTION_MESSAGE, URL_PAGE, HOME_PAGE
+-from url_shortener.db import Persistence
++from url_shortener.db import DataStorage
+ from url_shortener.forms import URLForm
+ 
+ 
+@@ -25,8 +25,8 @@ def shortener() -> None:
+         url_form = URLForm()
+         if url_form.validate_on_submit():
+             long_url = url_form.long_url.data
+-            persister = Persistence()
+-            url_exists, short_url_identifier = _get_short_url_identifier(persister, long_url)
++            data_store = DataStorage()
++            url_exists, short_url_identifier = _get_short_url_identifier(data_store, long_url)
+             if url_exists:
+                 app.logger.debug('Returning existing short url:' + short_url_identifier)
+                 return render_template(URL_PAGE,
+@@ -34,7 +34,7 @@ def shortener() -> None:
+                                        long_url=long_url,
+                                        short_url=BASE_URL + short_url_identifier)
+             else:
+-                error, short_url_identifier = _create_short_url(persister, long_url)
++                error, short_url_identifier = _create_short_url(data_store, long_url)
+                 if error is not None:
+                     app.logger.error("{}".format(error))
+ 
+@@ -48,9 +48,9 @@ def shortener() -> None:
+         app.logger.debug('index(): ' + EXCEPTION_MESSAGE.format(e))
+ 
+ 
+-def _get_short_url_identifier(persister, long_url) -> Tuple[bool, str]:
+-    url_exists, short_url_identifier = persister.search_for_existing_short_url(long_url)
+-    del persister
++def _get_short_url_identifier(data_store, long_url) -> Tuple[bool, str]:
++    url_exists, short_url_identifier = data_store.search(long_url)
++    del data_store
+     return url_exists, short_url_identifier
+ 
+ 
+@@ -59,7 +59,7 @@ def get_identifier_tracker():
+     return identifier_tracker
+ 
+ 
+-def _create_short_url(persister, long_url):
++def _create_short_url(data_store, long_url):
+     try:
+         identifier_tracker = get_identifier_tracker()
+         identifier = _get_unique_identifier(identifier_tracker)
+@@ -68,8 +68,8 @@ def _create_short_url(persister, long_url):
+         new_short_url.created_time = CURRENT_TIME
+         new_short_url.last_accessed_time = CURRENT_TIME
+         new_short_url.hits = '0'
+-        persister.insert_new_short_url(long_url, new_short_url)
+-        del persister
++        data_store.insert(long_url, new_short_url)
++        del data_store
+         app.logger.debug('index(): Insertion Successful')
+     except Exception as e:
+         return e, ''
+@@ -89,9 +89,9 @@ def _get_unique_identifier(identifier_tracker):
+ @app.route("/stats")
+ def display_statistics() -> None:
+     try:
+-        persister = Persistence()
+-        statistics = json.loads(persister.get_statistics())
+-        del persister
++        data_store = DataStorage()
++        statistics = json.loads(data_store.get_statistics_for_all_urls())
++        del data_store
+         if not statistics:
+             return render_template(ERROR_PAGE)
+ 
+@@ -109,8 +109,8 @@ def display_statistics() -> None:
+ @app.route("/<path:short_url_identifier>", methods=['GET'])
+ def route_short_url(short_url_identifier) -> None:
+     try:
+-        persister = Persistence()
+-        short_url_statistics = json.loads(persister.get_short_url_statistics(short_url_identifier))
++        data_store = DataStorage()
++        short_url_statistics = json.loads(data_store.get_statistics(short_url_identifier))
+         if short_url_statistics['Count'] == 0:
+             return render_template(ERROR_PAGE)
+ 
+@@ -121,8 +121,8 @@ def route_short_url(short_url_identifier) -> None:
+         existing_short_url.hits = str(int(short_url_statistics['hits']) + 1)
+         long_url = short_url_statistics['long_url']
+         app.logger.debug(short_url_statistics)
+-        persister.update_on_page_visit(long_url, existing_short_url)
+-        del persister
++        data_store.update(long_url, existing_short_url)
++        del data_store
+         return redirect(long_url)
+     except Exception as e:
+         app.logger.debug('short_urls(): ' + EXCEPTION_MESSAGE.format(e))
+@@ -131,9 +131,9 @@ def route_short_url(short_url_identifier) -> None:
+ @app.route("/<path:short_url_identifier>/stats")
+ def display_short_url_statistics(short_url_identifier) -> None:
+     try:
+-        persister = Persistence()
+-        short_url_statistics = persister.get_short_url_statistics(short_url_identifier)
+-        del persister
++        data_store = DataStorage()
++        short_url_statistics = data_store.get_statistics(short_url_identifier)
++        del data_store
+         if short_url_statistics['Count'] == 0:
+             return "<h1>Invalid Short URL</h1>"
+ 
