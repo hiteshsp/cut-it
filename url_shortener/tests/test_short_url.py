@@ -1,21 +1,18 @@
 import unittest
-from url_shortener import app
-from url_shortener.db import DynamoDB
 from pynamodb.connection import TableConnection
-from time import time
-from url_shortener.tests.ignore_warnings import ignore_warnings
 import short_url
 from werkzeug import exceptions
+from url_shortener.tests.utils import get_time
+from url_shortener import app
+from url_shortener.views import ShortURL
+from url_shortener.db import DataStorage
+from url_shortener.tests.ignore_warnings import ignore_warnings
 
-CURRENT_TIME = str(int(time()))
-
-obj = dict()
+test_long_url = "http://abc.xyz"
+test_short_url = ShortURL()
 
 
 class ShortURLTest(unittest.TestCase):
-    """
-        Contains unit tests for stats
-    """
     @ignore_warnings
     def setUp(self):
         app.config['TESTING'] = True
@@ -23,40 +20,31 @@ class ShortURLTest(unittest.TestCase):
         app.config['DEBUG'] = False
         self.app = app.test_client()
         self.assertEqual(app.debug, False)
-
-        obj['long_url'] = "http://abc.xyz"
-        obj['created_time'] = CURRENT_TIME
-        obj['short_url'] = short_url.encode_url(1, min_length=6)
-        obj['hits'] = '0'
-        obj['last_accessed'] = CURRENT_TIME
-        db = DynamoDB(obj)
-        db.insert()
+        test_short_url.created_time = get_time()
+        test_short_url.identifier = short_url.encode_url(1, min_length=6)
+        test_short_url.hits = '0'
+        test_short_url.last_accessed_time = get_time()
+        test_data_store = DataStorage()
+        test_data_store.insert_new_short_url(test_long_url, test_short_url)
 
     @ignore_warnings
     def tearDown(self):
-        """
-            Post tests cleanup code    
-        """
-        conn = TableConnection('flask-datastore', region='eu-north-1')
-        conn.delete_item(obj['long_url'], obj['created_time'])
+        conn = TableConnection('cut-it-datastore', region='eu-north-1')
+        conn.delete_item(test_long_url, test_short_url.created_time)
 
     @ignore_warnings
     def test_short_url(self):
-        """
-           Tests for successful rendering of /<short_url>
-        """
-        response = self.app.get('/'+obj['short_url'], follow_redirects=False)
+        response = self.app.get(
+            '/' + test_short_url.identifier, follow_redirects=False)
         self.assertEqual(response.status_code, 302)
 
     @ignore_warnings
     def test_stats_page(self):
-        """
-           Tests for successful rendering of /<short_url>/stats page 
-        """
-        response = self.app.get('/'+obj['short_url']+'/stats', follow_redirects=True)
+        response = self.app.get(
+            '/' + test_short_url.identifier+'/stats', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
         self.assertRaises(exceptions.InternalServerError)
 
 
 if __name__ == "__main__":
-     unittest.main()
+    unittest.main()

@@ -1,0 +1,11 @@
+[2020-03-10 04:11:18 +0000] [3684] [INFO] Starting gunicorn 20.0.4
+[2020-03-10 04:11:18 +0000] [3684] [INFO] Listening at: http://0.0.0.0:5000 (3684)
+[2020-03-10 04:11:18 +0000] [3684] [INFO] Using worker: sync
+[2020-03-10 04:11:18 +0000] [3687] [INFO] Booting worker with pid: 3687
+[2020-03-10 04:11:18 +0000] [3688] [INFO] Booting worker with pid: 3688
+[2020-03-10 04:11:18 +0000] [3689] [INFO] Booting worker with pid: 3689
+[2020-03-10 04:11:49 +0000] [3684] [INFO] Handling signal: int
+[2020-03-10 04:11:49 +0000] [3687] [INFO] Worker exiting (pid: 3687)
+[2020-03-10 04:11:49 +0000] [3689] [INFO] Worker exiting (pid: 3689)
+[2020-03-10 04:11:49 +0000] [3688] [INFO] Worker exiting (pid: 3688)
+[2020-03-10 04:11:49 +0000] [3684] [INFO] Shutting down: Master

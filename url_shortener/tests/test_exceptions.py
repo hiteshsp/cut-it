@@ -3,10 +3,8 @@ from url_shortener import app
 from url_shortener.tests.ignore_warnings import ignore_warnings
 from werkzeug import exceptions
 
-class ExceptionsLTest(unittest.TestCase):
-    """
-        Contains unit tests for stats
-    """
+
+class ExceptionsTest(unittest.TestCase):
     @ignore_warnings
     def setUp(self):
         app.config['TESTING'] = True
@@ -17,26 +15,23 @@ class ExceptionsLTest(unittest.TestCase):
 
     @ignore_warnings
     def tearDown(self):
-        """
-            Post tests cleanup code
-        """
+        """ Nothing to clean up."""
         pass
 
     @ignore_warnings
     def test_home_exception(self):
-        """
-            Tests for exceptions in / home route
-        """
         self.app.get('/', follow_redirects=False)
         self.assertRaises(exceptions.InternalServerError)
 
     @ignore_warnings
     def test_stats_page(self):
-        """
-            Tests for expetions in /stats route
-        """
         self.app.get('/stats', follow_redirects=True)
         self.assertRaises(exceptions.InternalServerError)
+
+    @ignore_warnings
+    def test_error_page(self):
+        error_page = self.app.get('/abcd', follow_redirects=True)
+        print(error_page.status_code)
 
 
 if __name__ == "__main__":
