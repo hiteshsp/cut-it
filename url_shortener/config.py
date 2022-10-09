@@ -7,12 +7,7 @@ ERROR_PAGE = 'error.html'
 HOME_PAGE = 'index.html'
 URL_PAGE = 'success.html'
 CURRENT_TIME = str(int(time()))
-<<<<<<< Updated upstream
 URL_STORE = os.environ.get('TABLE_NAME')
 EXCEPTION_MESSAGE = 'Exception occurred, msg: {}'
-REDIS_HOST='localhost'
-REDIS_PORT=6379
-=======
-URL_DETAILS = os.environ.get('TABLE_NAME')
-EXCEPTION_MESSAGE = 'Exception occurred, msg: {}'
->>>>>>> Stashed changes
+REDIS_HOST = 'localhost'
+REDIS_PORT = 6379

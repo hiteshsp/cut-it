@@ -25,11 +25,8 @@ retrying==1.3.3
 short-url==1.2.2
 simplejson==3.17.0
 six==1.14.0
-<<<<<<< Updated upstream
 snowballstemmer==2.0.0
 typing==3.7.4.1
-=======
->>>>>>> Stashed changes
 urllib3==1.25.8
 Werkzeug==1.0.0
 WTForms==2.2.1
